@@ -1,4 +1,10 @@
-"""Card de uma review individual: avatar + nome + nota + texto + like + delete."""
+"""Card de uma review individual.
+
+Reusável em /movie/[id], /feed e /user/[username] — cada página passa
+o event handler de toggle_like do seu próprio State.
+"""
+
+from typing import Callable, Optional
 
 import reflex as rx
 
@@ -28,7 +34,55 @@ def _avatar(review: ReviewItem) -> rx.Component:
     )
 
 
-def _like_button(review: ReviewItem) -> rx.Component:
+def _author_link(review: ReviewItem) -> rx.Component:
+    """Avatar + nome → link pro perfil do autor."""
+    return rx.link(
+        rx.flex(
+            _avatar(review),
+            rx.flex(
+                rx.text(
+                    review.display_name,
+                    class_name=(
+                        "text-slate-100 text-sm font-semibold "
+                        "hover:text-teal-400 transition-colors"
+                    ),
+                ),
+                rx.text(review.created_str, class_name="text-slate-500 text-xs"),
+                class_name="flex-col",
+            ),
+            class_name="items-center gap-3",
+        ),
+        href="/user/" + review.username,
+        class_name="cursor-pointer",
+    )
+
+
+def _movie_link(review: ReviewItem) -> rx.Component:
+    """Header com link pro filme, usado em feed e perfil."""
+    return rx.cond(
+        review.has_movie_title,
+        rx.link(
+            rx.flex(
+                rx.icon("film", size=12, class_name="text-slate-500"),
+                rx.text(
+                    review.movie_title,
+                    class_name=(
+                        "text-slate-300 text-xs font-medium "
+                        "hover:text-teal-400 transition-colors"
+                    ),
+                ),
+                class_name="items-center gap-1.5",
+            ),
+            href="/movie/" + review.movie_id,
+            class_name="cursor-pointer mb-3",
+        ),
+    )
+
+
+def _like_button(
+    review: ReviewItem,
+    on_toggle_like,
+) -> rx.Component:
     return rx.button(
         rx.flex(
             rx.icon(
@@ -46,7 +100,7 @@ def _like_button(review: ReviewItem) -> rx.Component:
             ),
             class_name="items-center gap-1.5",
         ),
-        on_click=MovieDetailState.toggle_like(review.id),
+        on_click=on_toggle_like(review.id),
         disabled=~AuthState.is_authenticated,
         title=rx.cond(
             AuthState.is_authenticated,
@@ -60,7 +114,8 @@ def _like_button(review: ReviewItem) -> rx.Component:
     )
 
 
-def _delete_button(review: ReviewItem) -> rx.Component:
+def _delete_button(review: ReviewItem, on_delete) -> rx.Component:
+    """Lixeira com confirmação. Só visível pro autor da review."""
     return rx.cond(
         review.user_id == AuthState.user_id,
         rx.alert_dialog.root(
@@ -98,7 +153,7 @@ def _delete_button(review: ReviewItem) -> rx.Component:
                     rx.alert_dialog.action(
                         rx.button(
                             "Apagar",
-                            on_click=MovieDetailState.delete_review(review.id),
+                            on_click=on_delete(review.id),
                             class_name=(
                                 "bg-red-500 hover:bg-red-600 text-white "
                                 "font-semibold px-4 py-2 rounded-md cursor-pointer"
@@ -113,25 +168,37 @@ def _delete_button(review: ReviewItem) -> rx.Component:
     )
 
 
-def review_card(review: ReviewItem) -> rx.Component:
-    return rx.box(
-        # Header
+def review_card(
+    review: ReviewItem,
+    on_toggle_like=None,
+    on_delete=None,
+    show_movie: bool = False,
+) -> rx.Component:
+    """Card reusável.
+
+    Args:
+        review: dados da review (já formatados)
+        on_toggle_like: event handler que recebe review_id (default
+            MovieDetailState.toggle_like — usado em /movie/[id])
+        on_delete: event handler que recebe review_id, ou None pra
+            ocultar o botão de apagar
+        show_movie: True pra mostrar link do filme no topo (feed/perfil)
+    """
+    if on_toggle_like is None:
+        on_toggle_like = MovieDetailState.toggle_like
+
+    footer_items = [_like_button(review, on_toggle_like)]
+    if on_delete is not None:
+        footer_items.append(_delete_button(review, on_delete))
+
+    children: list[rx.Component] = []
+    if show_movie:
+        children.append(_movie_link(review))
+
+    children.extend([
+        # Header (autor + rating)
         rx.flex(
-            rx.flex(
-                _avatar(review),
-                rx.flex(
-                    rx.text(
-                        review.display_name,
-                        class_name="text-slate-100 text-sm font-semibold",
-                    ),
-                    rx.text(
-                        review.created_str,
-                        class_name="text-slate-500 text-xs",
-                    ),
-                    class_name="flex-col",
-                ),
-                class_name="items-center gap-3",
-            ),
+            _author_link(review),
             rx.flex(
                 rx.icon("star", size=14, class_name="text-amber-400 fill-amber-400"),
                 rx.text(
@@ -142,7 +209,7 @@ def review_card(review: ReviewItem) -> rx.Component:
             ),
             class_name="items-center justify-between mb-3",
         ),
-        # Texto da review (se tiver)
+        # Texto
         rx.cond(
             review.has_text,
             rx.text(
@@ -150,12 +217,15 @@ def review_card(review: ReviewItem) -> rx.Component:
                 class_name="text-slate-300 text-sm leading-relaxed mb-3",
             ),
         ),
-        # Footer: like + delete
+        # Footer (like + delete)
         rx.flex(
-            _like_button(review),
-            _delete_button(review),
+            *footer_items,
             class_name="items-center justify-between",
         ),
+    ])
+
+    return rx.box(
+        *children,
         class_name=(
             "bg-[#13161e] border border-white/5 rounded-lg p-4 "
             "hover:border-white/15 transition w-full"

@@ -33,12 +33,21 @@ def _avatar() -> rx.Component:
 
 def _logged_in() -> rx.Component:
     return rx.flex(
-        _avatar(),
-        rx.text(
-            AuthState.display_name,
-            class_name=(
-                "text-slate-200 text-sm font-medium hidden sm:block"
+        rx.link(
+            rx.flex(
+                _avatar(),
+                rx.text(
+                    AuthState.display_name,
+                    class_name=(
+                        "text-slate-200 text-sm font-medium hidden sm:block "
+                        "hover:text-teal-400 transition-colors"
+                    ),
+                ),
+                class_name="items-center gap-2",
             ),
+            href="/user/" + AuthState.username,
+            class_name="cursor-pointer",
+            title="Meu perfil",
         ),
         rx.button(
             "Sair",

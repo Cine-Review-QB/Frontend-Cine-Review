@@ -162,7 +162,14 @@ def _reviews_section() -> rx.Component:
                 rx.cond(
                     MovieDetailState.has_reviews,
                     rx.vstack(
-                        rx.foreach(MovieDetailState.reviews, review_card),
+                        rx.foreach(
+                            MovieDetailState.reviews,
+                            lambda r: review_card(
+                                r,
+                                on_toggle_like=MovieDetailState.toggle_like,
+                                on_delete=MovieDetailState.delete_review,
+                            ),
+                        ),
                         class_name="gap-3 w-full",
                     ),
                     rx.box(

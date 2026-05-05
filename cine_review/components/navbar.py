@@ -36,8 +36,8 @@ def navbar() -> rx.Component:
                 ),
                 rx.flex(
                     _nav_link("Início", href="/"),
-                    _nav_link("Buscar", disabled=True),
-                    _nav_link("Feed", disabled=True),
+                    _nav_link("Buscar", href="/search"),
+                    _nav_link("Feed", href="/feed"),
                     class_name="items-center gap-1 ml-8",
                 ),
                 class_name="items-center",

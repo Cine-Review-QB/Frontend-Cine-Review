@@ -51,6 +51,20 @@ async def fetch_movie_by_id(movie_id: str, token: str = "") -> dict | None:
         return r.json()
 
 
+async def search_movies(query: str, limit: int = 30, token: str = "") -> list[dict]:
+    """GET /movies/search?q=. Busca full-text por título."""
+    if not query.strip():
+        return []
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        r = await client.get(
+            f"{GATEWAY_URL}/movies/search",
+            params={"q": query, "limit": limit},
+            headers=_bearer(token),
+        )
+        r.raise_for_status()
+        return r.json().get("movies", [])
+
+
 # ─── Reviews (Cine-Review) ────────────────────────────────────────────
 
 
@@ -104,6 +118,94 @@ async def toggle_review_like(review_id: str, token: str) -> dict:
     async with httpx.AsyncClient(timeout=10.0) as client:
         r = await client.post(
             f"{GATEWAY_URL}/reviews/{review_id}/like",
+            headers=_bearer(token),
+        )
+        r.raise_for_status()
+        return r.json()
+
+
+async def fetch_user_reviews(user_id: str, token: str) -> list[dict]:
+    """GET /reviews/user/{user_id}. Reviews escritas por um usuário."""
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        r = await client.get(
+            f"{GATEWAY_URL}/reviews/user/{user_id}",
+            headers=_bearer(token),
+        )
+        r.raise_for_status()
+        return r.json()
+
+
+# ─── Feed (Cine-Review) ───────────────────────────────────────────────
+
+
+async def fetch_feed(token: str, limit: int = 30) -> list[dict]:
+    """GET /feed. Reviews dos usuários que o autenticado segue."""
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        r = await client.get(
+            f"{GATEWAY_URL}/feed",
+            params={"limit": limit},
+            headers=_bearer(token),
+        )
+        r.raise_for_status()
+        return r.json()
+
+
+# ─── Perfil (Cine-Users) ──────────────────────────────────────────────
+
+
+async def fetch_user_by_username(username: str, token: str) -> dict | None:
+    """GET /auth/users/{username}. Retorna None se 404."""
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        r = await client.get(
+            f"{GATEWAY_URL}/auth/users/{username}",
+            headers=_bearer(token),
+        )
+        if r.status_code == 404:
+            return None
+        r.raise_for_status()
+        return r.json()
+
+
+# ─── Follow (Cine-Review) ─────────────────────────────────────────────
+
+
+async def follow_user(user_id: str, token: str) -> dict:
+    """POST /follow/{user_id}. Segue o usuário."""
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        r = await client.post(
+            f"{GATEWAY_URL}/follow/{user_id}",
+            headers=_bearer(token),
+        )
+        r.raise_for_status()
+        return r.json()
+
+
+async def unfollow_user(user_id: str, token: str) -> None:
+    """DELETE /follow/{user_id}. Deixa de seguir."""
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        r = await client.delete(
+            f"{GATEWAY_URL}/follow/{user_id}",
+            headers=_bearer(token),
+        )
+        r.raise_for_status()
+
+
+async def fetch_following(user_id: str, token: str) -> list[dict]:
+    """GET /follows/{user_id}/following. Lista quem `user_id` segue."""
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        r = await client.get(
+            f"{GATEWAY_URL}/follows/{user_id}/following",
+            headers=_bearer(token),
+        )
+        r.raise_for_status()
+        return r.json()
+
+
+async def fetch_followers(user_id: str, token: str) -> list[dict]:
+    """GET /follows/{user_id}/followers. Lista quem segue `user_id`."""
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        r = await client.get(
+            f"{GATEWAY_URL}/follows/{user_id}/followers",
             headers=_bearer(token),
         )
         r.raise_for_status()

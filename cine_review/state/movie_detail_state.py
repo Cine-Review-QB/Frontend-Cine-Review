@@ -29,6 +29,7 @@ class ReviewItem:
     id: str = ""
     user_id: str = ""
     movie_id: str = ""
+    movie_title: str = ""
     rating: float = 0.0
     text: str = ""
     likes_count: int = 0
@@ -42,6 +43,7 @@ class ReviewItem:
     display_name: str = ""
     has_avatar: bool = False
     has_text: bool = False
+    has_movie_title: bool = False
 
 
 def _format_date(iso_str: str) -> str:
@@ -70,10 +72,13 @@ def _to_review(d: dict) -> ReviewItem:
     else:
         display_name = "Usuário"
 
+    movie_title = d.get("movie_title") or ""
+
     return ReviewItem(
         id=str(d.get("id") or ""),
         user_id=user_id,
         movie_id=str(d.get("movie_id") or ""),
+        movie_title=movie_title,
         rating=rating,
         text=text,
         likes_count=int(d.get("likes_count") or 0),
@@ -85,6 +90,7 @@ def _to_review(d: dict) -> ReviewItem:
         display_name=display_name,
         has_avatar=bool(avatar_url),
         has_text=bool(text),
+        has_movie_title=bool(movie_title),
     )
 
 
