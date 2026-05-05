@@ -2,7 +2,8 @@
 
 import os
 
-CONTENT_API_URL = os.environ.get("CONTENT_API_URL", "http://localhost:5000")
+# Toda comunicação passa pelo API Gateway (Cine-Api-Gateway).
+# Override via env apenas se o Gateway estiver em outra máquina/porta.
 GATEWAY_URL = os.environ.get("GATEWAY_URL", "http://localhost:8000")
 
 GENRES_TO_SHOW = [

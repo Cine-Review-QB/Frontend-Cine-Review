@@ -2,6 +2,8 @@
 
 import reflex as rx
 
+from cine_review.components.login_button import login_button
+
 
 def _nav_link(label: str, href: str = "#", disabled: bool = False) -> rx.Component:
     if disabled:
@@ -40,16 +42,7 @@ def navbar() -> rx.Component:
                 ),
                 class_name="items-center",
             ),
-            rx.button(
-                "Entrar",
-                disabled=True,
-                title="Em breve — login via Auth0",
-                class_name=(
-                    "bg-teal-500 hover:bg-teal-400 text-slate-900 font-semibold "
-                    "px-5 py-2 rounded-lg transition-colors disabled:opacity-40 "
-                    "disabled:cursor-not-allowed"
-                ),
-            ),
+            login_button(),
             class_name=(
                 "items-center justify-between max-w-[1400px] mx-auto px-8 py-4"
             ),
