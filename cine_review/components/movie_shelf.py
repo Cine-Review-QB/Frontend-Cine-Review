@@ -3,7 +3,7 @@
 import reflex as rx
 
 from cine_review.components.movie_card import movie_card
-from cine_review.state.movie_state import Movie, Shelf
+from cine_review.state.movie_state import Movie, MovieState, Shelf
 
 
 def _skeleton_card() -> rx.Component:
@@ -73,6 +73,27 @@ def _shelf_title(shelf: Shelf) -> rx.Component:
     )
 
 
+def _scroll_btn(shelf: Shelf, direction: int) -> rx.Component:
+    """Chevron flutuante. Aparece no hover, escondida por default.
+    direction: -1 esquerda, +1 direita."""
+    is_right = direction > 0
+    return rx.button(
+        rx.icon(
+            "chevron-right" if is_right else "chevron-left",
+            size=22,
+        ),
+        on_click=MovieState.scroll_shelf(shelf.title, direction),
+        class_name=(
+            ("right-2" if is_right else "left-2")
+            + " absolute top-1/2 -translate-y-1/2 z-20 "
+            "w-10 h-10 rounded-full bg-black/70 hover:bg-black/90 "
+            "border border-white/10 text-white "
+            "items-center justify-center cursor-pointer "
+            "opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+        ),
+    )
+
+
 def movie_shelf(shelf: Shelf) -> rx.Component:
     return rx.box(
         rx.flex(
@@ -92,9 +113,19 @@ def movie_shelf(shelf: Shelf) -> rx.Component:
         ),
         rx.cond(
             shelf.available,
-            rx.flex(
-                rx.foreach(shelf.movies, _card_wrapper),
-                class_name="gap-3 overflow-x-auto pb-4 px-8 scroll-smooth",
+            rx.box(
+                rx.flex(
+                    rx.foreach(shelf.movies, _card_wrapper),
+                    id="shelf-" + shelf.title,
+                    class_name=(
+                        "gap-3 overflow-x-auto pb-4 px-8 scroll-smooth "
+                        # Esconde scrollbar nativo (Chrome/Safari + Firefox)
+                        "[&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
+                    ),
+                ),
+                _scroll_btn(shelf, -1),
+                _scroll_btn(shelf, +1),
+                class_name="relative group",
             ),
             _skeleton_row(),
         ),

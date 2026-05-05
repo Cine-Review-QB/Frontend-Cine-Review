@@ -323,3 +323,13 @@ class MovieState(rx.State):
         """Permite o usuário pular pra um filme específico clicando nos dots."""
         if 0 <= index < len(self.featured_pool):
             self.featured_index = index
+
+    @rx.event
+    def scroll_shelf(self, shelf_id: str, direction: int):
+        """Rola horizontalmente a prateleira `shelf_id` (positivo = direita,
+        negativo = esquerda). 600px é ~3-4 cards, scroll suave via JS nativo."""
+        delta = direction * 600
+        return rx.call_script(
+            f"const el = document.getElementById('shelf-{shelf_id}');"
+            f"if (el) el.scrollBy({{left: {delta}, behavior: 'smooth'}});"
+        )
