@@ -4,12 +4,14 @@ import reflex as rx
 
 from cine_review.pages.callback import callback
 from cine_review.pages.feed import feed
+from cine_review.pages.genre import genre
 from cine_review.pages.home import home
 from cine_review.pages.movie_detail import movie_detail
 from cine_review.pages.profile import profile
 from cine_review.pages.search import search
 from cine_review.state.auth_state import AuthState
 from cine_review.state.feed_state import FeedState
+from cine_review.state.genre_state import GenreState
 from cine_review.state.movie_detail_state import MovieDetailState
 from cine_review.state.movie_state import MovieState
 from cine_review.state.profile_state import ProfileState
@@ -51,6 +53,13 @@ app.add_page(
     route="/user/[name]",
     title="Perfil — CineReviews",
     on_load=[ProfileState.load_profile],
+)
+
+app.add_page(
+    genre,
+    route="/genre/[gname]",
+    title="Gênero — CineReviews",
+    on_load=[GenreState.load_genre],
 )
 
 # Callback do OAuth Auth0. handle_callback faz a troca code→token e

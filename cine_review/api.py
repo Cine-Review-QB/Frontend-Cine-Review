@@ -38,6 +38,24 @@ async def fetch_movies(
         return r.json().get("movies", [])
 
 
+async def fetch_movies_by_genre(
+    genre: str,
+    limit: int = 30,
+    skip: int = 0,
+    token: str = "",
+) -> dict:
+    """GET /movies/genre/{genre} via Gateway. Retorna payload completo
+    com movies + total pra suportar paginação."""
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        r = await client.get(
+            f"{GATEWAY_URL}/movies/genre/{genre}",
+            params={"limit": limit, "skip": skip},
+            headers=_bearer(token),
+        )
+        r.raise_for_status()
+        return r.json()
+
+
 async def fetch_movie_by_id(movie_id: str, token: str = "") -> dict | None:
     """GET /movies/{id}. Retorna None se 404."""
     async with httpx.AsyncClient(timeout=10.0) as client:

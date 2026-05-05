@@ -37,14 +37,46 @@ def _card_wrapper(m: Movie) -> rx.Component:
     )
 
 
+def _shelf_title(shelf: Shelf) -> rx.Component:
+    """Quando é prateleira de gênero, vira link clicável pra /genre/{name}.
+    As outras (top_week, feed) renderizam só texto — não há página dedicada
+    pra elas (o ranking já é o "/feed" do dia, e o feed tem página própria)."""
+    return rx.cond(
+        shelf.kind == "genre",
+        rx.link(
+            rx.flex(
+                rx.heading(
+                    shelf.title,
+                    size="5",
+                    class_name=(
+                        "text-slate-100 font-bold tracking-tight "
+                        "group-hover:text-teal-400 transition-colors"
+                    ),
+                ),
+                rx.icon(
+                    "chevron-right",
+                    size=18,
+                    class_name=(
+                        "text-slate-500 group-hover:text-teal-400 "
+                        "transition-colors mt-0.5"
+                    ),
+                ),
+                class_name="items-center gap-1 group cursor-pointer",
+            ),
+            href="/genre/" + shelf.title,
+        ),
+        rx.heading(
+            shelf.title,
+            size="5",
+            class_name="text-slate-100 font-bold tracking-tight",
+        ),
+    )
+
+
 def movie_shelf(shelf: Shelf) -> rx.Component:
     return rx.box(
         rx.flex(
-            rx.heading(
-                shelf.title,
-                size="5",
-                class_name="text-slate-100 font-bold tracking-tight",
-            ),
+            _shelf_title(shelf),
             rx.cond(
                 ~shelf.available,
                 rx.text(
