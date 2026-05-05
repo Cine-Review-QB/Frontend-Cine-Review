@@ -29,10 +29,16 @@ def navbar() -> rx.Component:
     return rx.box(
         rx.flex(
             rx.flex(
-                rx.heading(
-                    "CineReviews",
-                    size="6",
-                    class_name="text-teal-400 font-bold tracking-tight",
+                rx.link(
+                    rx.heading(
+                        "CineReviews",
+                        size="6",
+                        class_name=(
+                            "text-teal-400 font-bold tracking-tight "
+                            "hover:text-teal-300 transition-colors"
+                        ),
+                    ),
+                    href="/",
                 ),
                 rx.flex(
                     _nav_link("Início", href="/"),
