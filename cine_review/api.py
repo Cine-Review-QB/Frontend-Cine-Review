@@ -51,6 +51,18 @@ async def fetch_movie_by_id(movie_id: str, token: str = "") -> dict | None:
         return r.json()
 
 
+async def fetch_weekly_ranking(token: str = "") -> list[dict]:
+    """GET /ranking/weekly. Top filmes da semana por número de reviews.
+    Rota pública — token opcional."""
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        r = await client.get(
+            f"{GATEWAY_URL}/ranking/weekly",
+            headers=_bearer(token),
+        )
+        r.raise_for_status()
+        return r.json()
+
+
 async def search_movies(query: str, limit: int = 30, token: str = "") -> list[dict]:
     """GET /movies/search?q=. Busca full-text por título."""
     if not query.strip():

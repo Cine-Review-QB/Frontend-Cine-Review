@@ -39,6 +39,13 @@ def _rating_badge(movie: Movie) -> rx.Component:
                 movie.rating_str,
                 class_name="text-amber-400 text-[11px] font-bold leading-none",
             ),
+            rx.cond(
+                movie.has_votes,
+                rx.text(
+                    "(" + movie.vote_count_str + ")",
+                    class_name="text-slate-400 text-[10px] leading-none",
+                ),
+            ),
             class_name=(
                 "absolute top-2 right-2 items-center gap-1 "
                 "bg-black/75 backdrop-blur-sm px-2 py-1 rounded-md "

@@ -66,6 +66,13 @@ def _meta_row(movie: Movie) -> rx.Component:
                     movie.rating_str,
                     class_name="text-amber-400 font-bold text-base",
                 ),
+                rx.cond(
+                    movie.has_votes,
+                    rx.text(
+                        "(" + movie.vote_count_str + " votos)",
+                        class_name="text-slate-400 text-sm",
+                    ),
+                ),
                 class_name="items-center gap-1.5",
             ),
         ),
@@ -85,31 +92,19 @@ def _meta_row(movie: Movie) -> rx.Component:
     )
 
 
-def _ctas() -> rx.Component:
-    return rx.flex(
-        rx.button(
+def _ctas(movie: Movie) -> rx.Component:
+    return rx.link(
+        rx.flex(
             rx.icon("info", size=16),
-            "Ver detalhes",
-            disabled=True,
-            title="Em breve",
-            class_name=(
-                "bg-teal-500 hover:bg-teal-400 text-slate-900 font-semibold "
-                "px-6 py-3 rounded-lg transition-colors gap-2 items-center "
-                "disabled:opacity-50 disabled:cursor-not-allowed"
-            ),
+            rx.text("Ver detalhes"),
+            class_name="items-center gap-2",
         ),
-        rx.button(
-            rx.icon("pencil", size=16),
-            "Escrever review",
-            disabled=True,
-            title="Em breve — requer login",
-            class_name=(
-                "bg-transparent border border-white/20 hover:border-white/40 "
-                "text-white font-semibold px-6 py-3 rounded-lg transition-colors "
-                "gap-2 items-center disabled:opacity-50 disabled:cursor-not-allowed"
-            ),
+        href="/movie/" + movie.id,
+        class_name=(
+            "bg-teal-500 hover:bg-teal-400 text-slate-900 font-semibold "
+            "px-6 py-3 rounded-lg transition-colors cursor-pointer mt-4 "
+            "self-start"
         ),
-        class_name="items-center gap-3 mt-4",
     )
 
 
@@ -156,7 +151,7 @@ def _content(movie: Movie) -> rx.Component:
                     ),
                 ),
             ),
-            _ctas(),
+            _ctas(movie),
             class_name="flex-col gap-4 max-w-2xl",
         ),
         class_name=(
