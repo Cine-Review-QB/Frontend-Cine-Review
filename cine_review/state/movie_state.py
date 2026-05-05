@@ -1,6 +1,8 @@
 """Estado dos filmes na home. Carrega do Content Service e agrupa em prateleiras."""
 
+import asyncio
 import logging
+import math
 from dataclasses import dataclass, field
 
 import reflex as rx
@@ -15,6 +17,14 @@ from cine_review.config import GENRES_TO_SHOW, INITIAL_FETCH_LIMIT, MOVIES_PER_S
 from cine_review.state.auth_state import AuthState
 
 logger = logging.getLogger(__name__)
+
+# Pool do hero: top N por score ponderado. A home alterna entre eles.
+FEATURED_POOL_SIZE = 10
+FEATURED_MIN_VOTES = 1000
+# Tempo que cada filme fica visível antes de trocar (segundos).
+FEATURED_INTERVAL = 7
+# Duração do crossfade durante a troca (segundos).
+FEATURED_FADE = 0.4
 
 
 @dataclass
@@ -205,29 +215,63 @@ async def _resolve_feed(movies: list[Movie], token: str) -> list[Movie]:
     )
 
 
-def _pick_featured(movies: list[Movie]) -> Movie:
-    """Escolhe o filme do hero. Prefere com backdrop (visualmente muito melhor)."""
-    with_backdrop = [
-        m for m in movies if m.has_backdrop and m.has_poster and m.has_overview
+def _featured_score(m: Movie) -> float:
+    """Score ponderado: combina nota e popularidade.
+
+    rating * log(vote_count + 1) — filmes com nota alta E muitos votos
+    (clássicos consolidados) vencem filmes nicho com média inflada.
+    """
+    return m.rating * math.log(m.vote_count + 1)
+
+
+def _build_featured_pool(movies: list[Movie]) -> list[Movie]:
+    """Top N filmes por score ponderado para o carrossel do hero.
+
+    Filmes com backdrop, pôster, sinopse e popularidade mínima.
+    Fallbacks progressivamente mais permissivos se o filtro principal vazia.
+    """
+    eligible = [
+        m
+        for m in movies
+        if m.has_backdrop
+        and m.has_poster
+        and m.has_overview
+        and m.vote_count >= FEATURED_MIN_VOTES
     ]
-    if with_backdrop:
-        return max(with_backdrop, key=lambda m: m.rating)
+    if not eligible:
+        eligible = [m for m in movies if m.has_backdrop and m.has_poster and m.has_overview]
+    if not eligible:
+        eligible = [m for m in movies if m.has_poster and m.has_overview]
+    if not eligible:
+        return [movies[0]] if movies else []
 
-    with_poster = [m for m in movies if m.has_poster and m.has_overview]
-    if with_poster:
-        return max(with_poster, key=lambda m: m.rating)
-
-    if movies:
-        return movies[0]
-    return Movie()
+    eligible.sort(key=_featured_score, reverse=True)
+    return eligible[:FEATURED_POOL_SIZE]
 
 
 class MovieState(rx.State):
     shelves: list[Shelf] = []
-    featured: Movie = Movie()
     is_loading: bool = False
     error: str = ""
     is_empty: bool = False
+
+    # Carrossel do hero
+    featured_pool: list[Movie] = []
+    featured_index: int = 0
+    featured_fading: bool = False
+    _cycle_started: bool = False
+
+    @rx.var
+    def featured(self) -> Movie:
+        """Filme atualmente em destaque (computado do pool + index)."""
+        if not self.featured_pool:
+            return Movie()
+        i = self.featured_index % len(self.featured_pool)
+        return self.featured_pool[i]
+
+    @rx.var
+    def has_multiple_featured(self) -> bool:
+        return len(self.featured_pool) > 1
 
     @rx.event
     async def load_movies(self):
@@ -241,10 +285,11 @@ class MovieState(rx.State):
             if not movies:
                 self.is_empty = True
                 self.shelves = []
-                self.featured = Movie()
+                self.featured_pool = []
                 return
 
-            self.featured = _pick_featured(movies)
+            self.featured_pool = _build_featured_pool(movies)
+            self.featured_index = 0
             auth = await self.get_state(AuthState)
             top_week = await _resolve_top_week(movies)
             feed = await _resolve_feed(movies, auth.access_token)
@@ -253,3 +298,28 @@ class MovieState(rx.State):
             self.error = f"Não foi possível carregar os filmes: {e}"
         finally:
             self.is_loading = False
+
+        # Inicia o ciclo automático do hero apenas uma vez por sessão.
+        if not self._cycle_started and len(self.featured_pool) > 1:
+            self._cycle_started = True
+            return MovieState.cycle_featured
+
+    @rx.event(background=True)
+    async def cycle_featured(self):
+        """Background loop que alterna o filme em destaque com crossfade."""
+        while True:
+            await asyncio.sleep(FEATURED_INTERVAL)
+            async with self:
+                if len(self.featured_pool) <= 1:
+                    continue
+                self.featured_fading = True
+            await asyncio.sleep(FEATURED_FADE)
+            async with self:
+                self.featured_index = (self.featured_index + 1) % len(self.featured_pool)
+                self.featured_fading = False
+
+    @rx.event
+    def set_featured_index(self, index: int):
+        """Permite o usuário pular pra um filme específico clicando nos dots."""
+        if 0 <= index < len(self.featured_pool):
+            self.featured_index = index

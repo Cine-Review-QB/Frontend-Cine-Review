@@ -2,7 +2,7 @@
 
 import reflex as rx
 
-from cine_review.state.movie_state import Movie
+from cine_review.state.movie_state import Movie, MovieState
 
 
 def _backdrop(movie: Movie) -> rx.Component:
@@ -160,10 +160,47 @@ def _content(movie: Movie) -> rx.Component:
     )
 
 
+def _dots() -> rx.Component:
+    """Indicadores clicáveis embaixo do hero, mostrando posição no carrossel."""
+    return rx.cond(
+        MovieState.has_multiple_featured,
+        rx.flex(
+            rx.foreach(
+                MovieState.featured_pool,
+                lambda _m, i: rx.box(
+                    on_click=MovieState.set_featured_index(i),
+                    class_name=rx.cond(
+                        i == MovieState.featured_index,
+                        "w-8 h-1.5 bg-teal-400 rounded-full cursor-pointer transition-all",
+                        "w-1.5 h-1.5 bg-white/30 hover:bg-white/50 rounded-full cursor-pointer transition-all",
+                    ),
+                ),
+            ),
+            class_name=(
+                "absolute bottom-6 left-1/2 -translate-x-1/2 z-20 "
+                "items-center gap-2"
+            ),
+        ),
+    )
+
+
 def hero(movie: Movie) -> rx.Component:
+    """Hero com crossfade entre os filmes do carrossel.
+
+    O movie passado em argumento já vem do MovieState.featured (computed),
+    então cada troca de featured_index retriggera o render.
+    """
     return rx.box(
-        _backdrop(movie),
-        _gradients(),
-        _content(movie),
+        rx.box(
+            _backdrop(movie),
+            _gradients(),
+            _content(movie),
+            class_name=rx.cond(
+                MovieState.featured_fading,
+                "opacity-0 transition-opacity duration-500",
+                "opacity-100 transition-opacity duration-500",
+            ),
+        ),
+        _dots(),
         class_name="relative w-full min-h-[68vh] overflow-hidden",
     )
