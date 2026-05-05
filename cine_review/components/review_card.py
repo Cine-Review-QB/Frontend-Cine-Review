@@ -63,13 +63,51 @@ def _like_button(review: ReviewItem) -> rx.Component:
 def _delete_button(review: ReviewItem) -> rx.Component:
     return rx.cond(
         review.user_id == AuthState.user_id,
-        rx.button(
-            rx.icon("trash-2", size=14),
-            on_click=MovieDetailState.delete_review(review.id),
-            title="Apagar minha review",
-            class_name=(
-                "bg-transparent text-slate-500 hover:text-red-400 "
-                "hover:bg-red-500/10 px-2 py-1 rounded transition cursor-pointer"
+        rx.alert_dialog.root(
+            rx.alert_dialog.trigger(
+                rx.button(
+                    rx.icon("trash-2", size=14),
+                    title="Apagar minha review",
+                    class_name=(
+                        "bg-transparent text-slate-500 hover:text-red-400 "
+                        "hover:bg-red-500/10 px-2 py-1 rounded transition cursor-pointer"
+                    ),
+                ),
+            ),
+            rx.alert_dialog.content(
+                rx.alert_dialog.title(
+                    "Apagar review?",
+                    class_name="text-white font-bold text-lg",
+                ),
+                rx.alert_dialog.description(
+                    "Essa ação não pode ser desfeita. A review e os likes "
+                    "associados serão removidos permanentemente.",
+                    class_name="text-slate-300 text-sm mt-2 mb-5",
+                ),
+                rx.flex(
+                    rx.alert_dialog.cancel(
+                        rx.button(
+                            "Cancelar",
+                            class_name=(
+                                "bg-transparent border border-white/15 "
+                                "hover:border-white/30 text-slate-200 "
+                                "px-4 py-2 rounded-md cursor-pointer"
+                            ),
+                        ),
+                    ),
+                    rx.alert_dialog.action(
+                        rx.button(
+                            "Apagar",
+                            on_click=MovieDetailState.delete_review(review.id),
+                            class_name=(
+                                "bg-red-500 hover:bg-red-600 text-white "
+                                "font-semibold px-4 py-2 rounded-md cursor-pointer"
+                            ),
+                        ),
+                    ),
+                    class_name="gap-3 justify-end",
+                ),
+                class_name="bg-[#13161e] border border-white/10 max-w-md",
             ),
         ),
     )
