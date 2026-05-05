@@ -67,9 +67,11 @@ class AuthState(rx.State):
     username: str = rx.LocalStorage("")
     avatar_url: str = rx.LocalStorage("")
 
-    # Transient: usado entre o redirect pro /authorize e o /callback.
-    # SessionStorage é melhor que LocalStorage aqui — só a aba atual.
-    code_verifier: str = rx.SessionStorage("")
+    # Usado entre o redirect pro /authorize e o /callback. Em LocalStorage
+    # (não SessionStorage) por timing — Reflex 0.9 não garante persistência
+    # de SessionStorage antes de rx.redirect externo, e o verifier era
+    # perdido na volta do Auth0.
+    code_verifier: str = rx.LocalStorage("")
 
     # Mensagem de erro para exibir na UI quando algo falhar.
     auth_error: str = ""

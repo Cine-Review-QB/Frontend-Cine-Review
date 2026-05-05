@@ -72,20 +72,24 @@ def _hover_overlay(movie: Movie) -> rx.Component:
 
 
 def movie_card(movie: Movie) -> rx.Component:
-    return rx.box(
+    return rx.link(
         rx.box(
-            _poster_or_fallback(movie),
-            _rating_badge(movie),
-            _hover_overlay(movie),
+            rx.box(
+                _poster_or_fallback(movie),
+                _rating_badge(movie),
+                _hover_overlay(movie),
+                class_name=(
+                    "relative w-full aspect-[2/3] overflow-hidden rounded-lg "
+                    "bg-[#13161e] border border-white/5 "
+                    "group-hover:border-white/15 transition-colors"
+                ),
+            ),
             class_name=(
-                "relative w-full aspect-[2/3] overflow-hidden rounded-lg "
-                "bg-[#13161e] border border-white/5 "
-                "group-hover:border-white/15 transition-colors"
+                "group cursor-pointer transition-transform duration-200 "
+                "hover:scale-[1.04] hover:shadow-2xl hover:shadow-amber-500/10 "
+                "will-change-transform"
             ),
         ),
-        class_name=(
-            "group cursor-pointer transition-transform duration-200 "
-            "hover:scale-[1.04] hover:shadow-2xl hover:shadow-amber-500/10 "
-            "will-change-transform"
-        ),
+        href="/movie/" + movie.id,
+        class_name="block",
     )

@@ -7,6 +7,10 @@ um aviso amigável em vez de gerar URL inválida.
 
 import os
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 AUTH0_DOMAIN = os.environ.get("AUTH0_DOMAIN", "")
 AUTH0_CLIENT_ID = os.environ.get("AUTH0_CLIENT_ID", "")
 AUTH0_AUDIENCE = os.environ.get("AUTH0_AUDIENCE", "https://api.cinereviews.com")
