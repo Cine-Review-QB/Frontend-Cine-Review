@@ -212,40 +212,50 @@ class AuthState(rx.State):
         )
 
     async def _ensure_profile(self) -> None:
-        """Best-effort: cria o perfil no Cine-Users se ainda não existe.
+        """Garante que o perfil existe no Cine-Users.
 
-        Falhas aqui não derrubam o login — o usuário fica autenticado e
-        a próxima ação que precise do perfil tenta de novo. Útil porque
-        no primeiro login o registro ainda não existe no Postgres.
+        Sequência: tenta GET /auth/me. Se 200, sincroniza dados locais.
+        Caso contrário (404, 401, etc.), tenta POST /auth para criar.
+
+        É crítico que o perfil exista: reviews.user_id e
+        review_likes.user_id têm FK pra users.auth0_id; sem o registro,
+        qualquer ação social falha com FK violation.
         """
         if not self.access_token:
             return
 
         headers = {"Authorization": f"Bearer {self.access_token}"}
+        # Username único: usa nickname/email + sufixo do sub pra evitar
+        # colisão na UQ users_username_key.
+        suffix = self.user_id.replace("|", "_")[-8:] if self.user_id else ""
+        candidate_username = (self.username or "user") + ("-" + suffix if suffix else "")
+
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 me = await client.get(
                     f"{GATEWAY_URL}/auth/me", headers=headers
                 )
-                if me.status_code == 404:
-                    await client.post(
-                        f"{GATEWAY_URL}/auth",
-                        headers=headers,
-                        json={
-                            "username": self.username,
-                            "bio": "",
-                            "avatarUrl": self.avatar_url,
-                        },
-                    )
-                elif me.status_code == 200:
-                    # Perfil existe — sincroniza username caso o usuário
-                    # tenha mudado no Cine-Users.
+
+                if me.status_code == 200:
                     data = me.json()
                     if data.get("username"):
                         self.username = data["username"]
                     if data.get("avatarUrl"):
                         self.avatar_url = data["avatarUrl"]
+                    return
+
+                create = await client.post(
+                    f"{GATEWAY_URL}/auth",
+                    headers=headers,
+                    json={
+                        "username": candidate_username,
+                        "bio": "",
+                        "avatarUrl": self.avatar_url,
+                    },
+                )
+                if create.status_code in (200, 201):
+                    self.username = candidate_username
         except httpx.RequestError as e:
-            logger.warning(
-                "_ensure_profile falhou (best-effort, ignorando): %s", e
-            )
+            logger.warning("_ensure_profile network error: %s", e)
+        except Exception as e:
+            logger.warning("_ensure_profile unexpected: %s: %s", type(e).__name__, e)
