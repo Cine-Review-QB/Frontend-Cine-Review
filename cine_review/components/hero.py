@@ -77,6 +77,17 @@ def _meta_row(movie: Movie) -> rx.Component:
             ),
         ),
         rx.cond(
+            movie.has_local_reviews,
+            rx.flex(
+                rx.icon("message-square", size=14, class_name="text-teal-400"),
+                rx.text(
+                    movie.local_reviews_str,
+                    class_name="text-teal-400 text-sm font-medium",
+                ),
+                class_name="items-center gap-1",
+            ),
+        ),
+        rx.cond(
             movie.year_str != "",
             rx.text(movie.year_str, class_name="text-slate-300 text-sm"),
         ),

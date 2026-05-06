@@ -107,6 +107,9 @@ class MovieDetailState(rx.State):
 
     # Formulário de criar review
     form_rating: list[float] = [5.0]
+    # Valor sendo "hovered" no widget de estrelas (0 = sem hover, mostra
+    # o rating real selecionado).
+    form_rating_hover: float = 0.0
     form_text: str = ""
     form_submitting: bool = False
     form_error: str = ""
@@ -126,8 +129,15 @@ class MovieDetailState(rx.State):
         return self.form_rating[0] if self.form_rating else 5.0
 
     @rx.var
+    def form_rating_display(self) -> float:
+        """Valor a renderizar no widget: hover quando ativo, senão o real."""
+        if self.form_rating_hover > 0:
+            return self.form_rating_hover
+        return self.form_rating[0] if self.form_rating else 5.0
+
+    @rx.var
     def form_rating_str(self) -> str:
-        return f"{self.form_rating_value:.1f}"
+        return f"{self.form_rating_display:.1f}"
 
     @rx.var
     def has_reviews(self) -> bool:
@@ -177,6 +187,26 @@ class MovieDetailState(rx.State):
         self.form_rating = value if value else [5.0]
         self.form_error = ""
         self.form_success = False
+
+    @rx.event
+    def set_form_rating_value(self, value: float):
+        """Variante usada pelo widget de estrelas (recebe float direto,
+        não a list[float] do slider)."""
+        v = max(0.5, min(5.0, float(value)))
+        self.form_rating = [v]
+        self.form_rating_hover = 0.0
+        self.form_error = ""
+        self.form_success = False
+
+    @rx.event
+    def set_form_rating_hover(self, value: float):
+        """Atualiza o valor sendo hovered no widget de estrelas."""
+        self.form_rating_hover = max(0.5, min(5.0, float(value)))
+
+    @rx.event
+    def clear_form_rating_hover(self):
+        """Sai do hover — volta a mostrar o rating real selecionado."""
+        self.form_rating_hover = 0.0
 
     @rx.event
     def set_form_text(self, value: str):

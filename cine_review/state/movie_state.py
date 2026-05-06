@@ -44,17 +44,20 @@ class Movie:
     genres: list[str] = field(default_factory=list)
     rating: float = 0.0
     vote_count: int = 0
+    local_review_count: int = 0
 
     rating_str: str = ""
     year_str: str = ""
     runtime_str: str = ""
     genres_str: str = ""
     vote_count_str: str = ""
+    local_reviews_str: str = ""
 
     has_poster: bool = False
     has_backdrop: bool = False
     has_overview: bool = False
     has_votes: bool = False
+    has_local_reviews: bool = False
 
 
 @dataclass
@@ -79,6 +82,7 @@ def _format_votes(n: int) -> str:
 def _to_movie(d: dict) -> Movie:
     rating = float(d.get("rating") or 0.0)
     vote_count = int(d.get("vote_count") or 0)
+    local_n = int(d.get("local_review_count") or 0)
     year = d.get("year")
     runtime = d.get("runtime")
     genres = d.get("genres") or []
@@ -96,15 +100,20 @@ def _to_movie(d: dict) -> Movie:
         genres=genres,
         rating=rating,
         vote_count=vote_count,
+        local_review_count=local_n,
         rating_str=f"{rating:.1f}" if rating > 0 else "—",
         year_str=str(year) if year else "",
         runtime_str=f"{runtime} min" if runtime else "",
         genres_str=" · ".join(genres[:3]),
         vote_count_str=_format_votes(vote_count) if vote_count > 0 else "",
+        local_reviews_str=(
+            f"{local_n} review" + ("" if local_n == 1 else "s")
+        ),
         has_poster=bool(poster),
         has_backdrop=bool(backdrop),
         has_overview=bool(overview),
         has_votes=vote_count > 0,
+        has_local_reviews=local_n > 0,
     )
 
 

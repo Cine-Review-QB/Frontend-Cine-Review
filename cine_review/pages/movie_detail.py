@@ -95,6 +95,13 @@ def _hero() -> rx.Component:
                         movie.rating_str,
                         class_name="text-amber-400 text-xl font-bold",
                     ),
+                    rx.cond(
+                        movie.has_votes,
+                        rx.text(
+                            "(" + movie.vote_count.to_string() + ")",
+                            class_name="text-slate-400 text-sm",
+                        ),
+                    ),
                     rx.text("·", class_name="text-slate-500"),
                     rx.text(movie.year_str, class_name="text-slate-300"),
                     rx.cond(
