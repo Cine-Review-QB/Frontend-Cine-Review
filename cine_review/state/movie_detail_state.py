@@ -244,6 +244,15 @@ class MovieDetailState(rx.State):
 
             raw = await fetch_reviews(self.movie_id, auth.access_token)
             self.reviews = [_to_review(r) for r in raw]
+
+            # Refetch do filme — o Cine-Review já chamou Cine-Content
+            # pra atualizar local_review_count + local_avg_rating, então
+            # o GET retorna rating combinado + count atualizados.
+            movie_doc = await fetch_movie_by_id(
+                self.movie_id, auth.access_token
+            )
+            if movie_doc is not None:
+                self.movie = _to_movie(movie_doc)
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 409:
                 self.form_error = "Você já avaliou esse filme."
@@ -286,5 +295,11 @@ class MovieDetailState(rx.State):
         try:
             await api_delete_review(review_id, auth.access_token)
             self.reviews = [r for r in self.reviews if r.id != review_id]
+            # Mesmo motivo do submit_review — count/avg do filme mudaram.
+            movie_doc = await fetch_movie_by_id(
+                self.movie_id, auth.access_token
+            )
+            if movie_doc is not None:
+                self.movie = _to_movie(movie_doc)
         except Exception as e:
             logger.warning("Falha ao deletar review: %s", e)
