@@ -196,6 +196,27 @@ async def fetch_user_by_username(username: str, token: str) -> dict | None:
         return r.json()
 
 
+async def update_profile(
+    username: str,
+    bio: str,
+    avatar_url: str,
+    token: str,
+) -> dict:
+    """PUT /auth/me. Atualiza perfil do usuário logado."""
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        r = await client.put(
+            f"{GATEWAY_URL}/auth/me",
+            headers=_bearer(token),
+            json={
+                "username": username,
+                "bio": bio,
+                "avatarUrl": avatar_url,
+            },
+        )
+        r.raise_for_status()
+        return r.json()
+
+
 # ─── Follow (Cine-Review) ─────────────────────────────────────────────
 
 

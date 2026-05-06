@@ -16,6 +16,7 @@ from cine_review.api import (
     follow_user,
     toggle_review_like,
     unfollow_user,
+    update_profile,
 )
 from cine_review.state.auth_state import AuthState
 from cine_review.state.movie_detail_state import ReviewItem, _to_review
@@ -37,13 +38,50 @@ class ProfileUser:
     has_bio: bool = False
 
 
+@dataclass
+class FollowUser:
+    id: str = ""
+    username: str = ""
+    avatar_url: str = ""
+    has_avatar: bool = False
+
+
 class ProfileState(rx.State):
     user: ProfileUser = ProfileUser()
     reviews: list[ReviewItem] = []
+    followers: list[FollowUser] = []
+    following: list[FollowUser] = []
     is_following: bool = False
     is_own_profile: bool = False
     is_loading: bool = False
     error: str = ""
+    bio_input: str = ""
+    is_editing_bio: bool = False
+    is_saving_bio: bool = False
+    bio_error: str = ""
+
+    def _to_follow_user(self, data: dict, direction: str) -> FollowUser:
+        if direction == "followers":
+            user_id = data.get("follower_id") or ""
+            username = data.get("follower_username") or ""
+            avatar = data.get("follower_avatar_url") or ""
+        else:
+            user_id = data.get("following_id") or ""
+            username = data.get("following_username") or ""
+            avatar = data.get("following_avatar_url") or ""
+
+        if not username:
+            if "|" in user_id:
+                username = user_id.split("|")[-1][:12]
+            else:
+                username = user_id[:12] if user_id else "usuário"
+
+        return FollowUser(
+            id=user_id,
+            username=username,
+            avatar_url=avatar,
+            has_avatar=bool(avatar),
+        )
 
     @rx.var
     def username_from_url(self) -> str:
@@ -115,6 +153,7 @@ class ProfileState(rx.State):
                 has_avatar=bool(avatar),
                 has_bio=bool(bio),
             )
+            self.bio_input = bio
 
             self.is_own_profile = self.user.auth0_id == auth.user_id
 
@@ -124,6 +163,25 @@ class ProfileState(rx.State):
             except Exception as e:
                 logger.warning("Falha ao carregar reviews do perfil: %s", e)
                 self.reviews = []
+
+            # Carrega listas de seguidores/seguindo (best-effort)
+            try:
+                followers = await fetch_followers(target_auth0, token)
+                self.followers = [
+                    self._to_follow_user(f, "followers") for f in followers
+                ]
+            except Exception as e:
+                logger.warning("Falha ao carregar followers list: %s", e)
+                self.followers = []
+
+            try:
+                following = await fetch_following(target_auth0, token)
+                self.following = [
+                    self._to_follow_user(f, "following") for f in following
+                ]
+            except Exception as e:
+                logger.warning("Falha ao carregar following list: %s", e)
+                self.following = []
 
             if not self.is_own_profile:
                 try:
@@ -162,8 +220,59 @@ class ProfileState(rx.State):
                     self.user,
                     followers_count=self.user.followers_count + 1,
                 )
+                self.followers = [
+                    FollowUser(
+                        id=auth.user_id,
+                        username=auth.username or auth.user_id,
+                        avatar_url=auth.avatar_url,
+                        has_avatar=bool(auth.avatar_url),
+                    ),
+                    *self.followers,
+                ]
         except Exception as e:
             logger.warning("toggle_follow falhou: %s", e)
+
+    @rx.event
+    def toggle_bio_edit(self):
+        if not self.is_own_profile:
+            return
+        self.is_editing_bio = not self.is_editing_bio
+        self.bio_error = ""
+
+    @rx.event
+    def set_bio_input(self, value: str):
+        if not self.is_own_profile:
+            return
+        self.bio_input = value[:200]
+        self.bio_error = ""
+
+    @rx.event
+    async def save_bio(self):
+        auth = await self.get_state(AuthState)
+        if not auth.access_token or not self.is_own_profile:
+            return
+
+        self.is_saving_bio = True
+        self.bio_error = ""
+
+        try:
+            data = await update_profile(
+                username=self.user.username,
+                bio=self.bio_input.strip(),
+                avatar_url=self.user.avatar_url,
+                token=auth.access_token,
+            )
+            bio = data.get("bio") or ""
+            self.user = dataclasses.replace(
+                self.user,
+                bio=bio,
+                has_bio=bool(bio),
+            )
+            self.is_editing_bio = False
+        except Exception as e:
+            self.bio_error = f"Falha ao salvar bio: {e}"
+        finally:
+            self.is_saving_bio = False
 
     @rx.event
     async def toggle_like(self, review_id: str):

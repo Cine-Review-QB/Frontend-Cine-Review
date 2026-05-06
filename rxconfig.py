@@ -1,9 +1,10 @@
+import os
 import reflex as rx
 
 config = rx.Config(
     app_name="cine_review",
-    # Gateway roda em 8000; backend interno do Reflex precisa de outra porta.
-    backend_port=8800,
+    backend_port=int(os.getenv("BACKEND_PORT", "8800")),
+    api_url=os.getenv("API_URL", "http://localhost:8800"),
     plugins=[
         rx.plugins.SitemapPlugin(),
         rx.plugins.TailwindV4Plugin(),
