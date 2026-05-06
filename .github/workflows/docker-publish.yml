@@ -27,7 +27,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: uyris/cinereviews-gateway:latest
+          tags: uyris/cinereviews-frontend:latest
 
       # 🚀 Deploy na EC2
       - name: Deploy to EC2
