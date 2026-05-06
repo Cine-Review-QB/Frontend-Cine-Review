@@ -182,28 +182,37 @@ def _follow_list(title: str, items) -> rx.Component:
             rx.vstack(
                 rx.foreach(
                     items,
-                    lambda u: rx.flex(
-                        rx.cond(
-                            u.has_avatar,
-                            rx.image(
-                                src=u.avatar_url,
-                                alt=u.username,
-                                referrer_policy="no-referrer",
-                                class_name=(
-                                    "w-8 h-8 rounded-full object-cover ring-2 "
-                                    "ring-white/10"
+                    lambda u: rx.link(
+                        rx.flex(
+                            rx.cond(
+                                u.has_avatar,
+                                rx.image(
+                                    src=u.avatar_url,
+                                    alt=u.username,
+                                    referrer_policy="no-referrer",
+                                    class_name=(
+                                        "w-8 h-8 rounded-full object-cover ring-2 "
+                                        "ring-white/10"
+                                    ),
+                                ),
+                                rx.flex(
+                                    rx.icon("user", size=14, class_name="text-teal-400"),
+                                    class_name=(
+                                        "w-8 h-8 rounded-full bg-teal-500/20 "
+                                        "items-center justify-center ring-2 ring-white/10"
+                                    ),
                                 ),
                             ),
-                            rx.flex(
-                                rx.icon("user", size=14, class_name="text-teal-400"),
+                            rx.text(
+                                u.username,
                                 class_name=(
-                                    "w-8 h-8 rounded-full bg-teal-500/20 "
-                                    "items-center justify-center ring-2 ring-white/10"
+                                    "text-slate-200 text-sm "
+                                    "group-hover:text-teal-400 transition-colors"
                                 ),
                             ),
+                            class_name="items-center gap-3 group cursor-pointer",
                         ),
-                        rx.text(u.username, class_name="text-slate-200 text-sm"),
-                        class_name="items-center gap-3",
+                        href="/user/" + u.username,
                     ),
                 ),
                 class_name="gap-2",
