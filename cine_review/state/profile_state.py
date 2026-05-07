@@ -105,6 +105,9 @@ class ProfileState(rx.State):
         self.is_loading = True
         self.error = ""
         self.is_following = False
+        self.is_editing_bio = False
+        self.is_saving_bio = False
+        self.bio_error = ""
 
         auth = await self.get_state(AuthState)
         token = auth.access_token

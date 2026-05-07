@@ -1,4 +1,15 @@
-
 reflex==0.9.1
+reflex-base==0.9.1
+reflex-components-code==0.9.1
+reflex-components-core==0.9.1
+reflex-components-dataeditor==0.9.1
+reflex-components-gridjs==0.9.1
+reflex-components-markdown==0.9.1
+reflex-components-moment==0.9.1
+reflex-components-plotly==0.9.1
+reflex-components-radix==0.9.1
+reflex-components-react-player==0.9.1
+reflex-components-recharts==0.9.1
+reflex-components-sonner==0.9.1
 httpx>=0.27
 python-dotenv>=1.0
