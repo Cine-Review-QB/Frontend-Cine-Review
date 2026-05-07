@@ -18,7 +18,8 @@ def _avatar() -> rx.Component:
             alt=AuthState.username,
             referrer_policy="no-referrer",
             class_name=(
-                "w-8 h-8 rounded-full object-cover ring-2 ring-teal-500/30"
+                "w-8 h-8 rounded-full object-cover ring-2 ring-teal-500/30 "
+                "transition-transform hover:scale-105"
             ),
         ),
         rx.flex(
@@ -39,7 +40,7 @@ def _logged_in() -> rx.Component:
                 rx.text(
                     AuthState.display_name,
                     class_name=(
-                        "text-slate-200 text-sm font-medium hidden sm:block "
+                        "text-slate-200 text-sm font-semibold hidden md:block "
                         "hover:text-teal-400 transition-colors"
                     ),
                 ),
@@ -55,10 +56,10 @@ def _logged_in() -> rx.Component:
             class_name=(
                 "bg-transparent border border-white/10 hover:border-white/30 "
                 "text-slate-400 hover:text-slate-200 text-xs font-medium "
-                "px-3 py-1.5 rounded-md transition cursor-pointer"
+                "px-3 py-1.5 rounded-lg transition cursor-pointer"
             ),
         ),
-        class_name="items-center gap-3",
+        class_name="items-center gap-2 sm:gap-3",
     )
 
 
@@ -68,7 +69,8 @@ def _logged_out() -> rx.Component:
         on_click=AuthState.start_login,
         class_name=(
             "bg-teal-500 hover:bg-teal-400 text-slate-900 font-semibold "
-            "px-4 py-2 rounded-lg transition cursor-pointer"
+            "px-4 py-2 rounded-xl transition cursor-pointer shadow-lg "
+            "shadow-teal-500/10"
         ),
     )
 

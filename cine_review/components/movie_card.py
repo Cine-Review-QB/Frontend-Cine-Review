@@ -73,7 +73,7 @@ def _hover_overlay(movie: Movie) -> rx.Component:
         ),
         class_name=(
             "absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent "
-            "opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            "opacity-0 group-hover:opacity-100 transition-opacity duration-300"
         ),
     )
 
@@ -86,14 +86,15 @@ def movie_card(movie: Movie) -> rx.Component:
                 _rating_badge(movie),
                 _hover_overlay(movie),
                 class_name=(
-                    "relative w-full aspect-[2/3] overflow-hidden rounded-lg "
-                    "bg-[#13161e] border border-white/5 "
-                    "group-hover:border-white/15 transition-colors"
+                    "relative w-full aspect-[2/3] overflow-hidden rounded-xl "
+                    "bg-[#13161e] border border-white/10 "
+                    "group-hover:border-teal-300/25 transition-colors duration-300"
                 ),
             ),
             class_name=(
-                "group cursor-pointer transition-transform duration-200 "
-                "hover:scale-[1.04] hover:shadow-2xl hover:shadow-amber-500/10 "
+                "group cursor-pointer transition-all duration-300 "
+                "hover:-translate-y-1 hover:scale-[1.03] "
+                "hover:shadow-2xl hover:shadow-teal-500/10 "
                 "will-change-transform"
             ),
         ),

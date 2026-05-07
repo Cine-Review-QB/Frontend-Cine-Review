@@ -18,7 +18,7 @@ def _back_link() -> rx.Component:
         ),
         href="/",
         class_name=(
-            "absolute top-24 left-8 z-20 text-slate-300 hover:text-teal-400 "
+            "absolute top-24 left-5 sm:left-8 z-20 text-slate-300 hover:text-teal-400 "
             "text-sm font-medium transition"
         ),
     )
@@ -49,7 +49,7 @@ def _hero() -> rx.Component:
                     ),
                     rx.box(
                         class_name=(
-                            "w-full h-full bg-gradient-to-br "
+                        "w-full h-full bg-gradient-to-br "
                             "from-[#1a1e28] via-[#13161e] to-[#0a0a0f]"
                         ),
                     ),
@@ -74,14 +74,14 @@ def _hero() -> rx.Component:
                     alt=movie.title,
                     referrer_policy="no-referrer",
                     class_name=(
-                        "w-[220px] aspect-[2/3] object-cover rounded-xl "
-                        "shadow-2xl flex-shrink-0"
+                        "w-36 sm:w-[220px] aspect-[2/3] object-cover rounded-2xl "
+                        "shadow-2xl flex-shrink-0 ring-1 ring-white/10"
                     ),
                 ),
                 rx.flex(
                     rx.icon("film", size=42, class_name="text-slate-600"),
                     class_name=(
-                        "w-[220px] aspect-[2/3] bg-gradient-to-br "
+                        "w-36 sm:w-[220px] aspect-[2/3] bg-gradient-to-br "
                         "from-[#1a1e28] to-[#13161e] rounded-xl "
                         "items-center justify-center flex-shrink-0"
                     ),
@@ -115,12 +115,14 @@ def _hero() -> rx.Component:
                             class_name="items-center gap-3",
                         ),
                     ),
-                    class_name="items-center gap-3",
+                    class_name="items-center gap-2 sm:gap-3 flex-wrap",
                 ),
                 rx.heading(
                     movie.title,
                     size="9",
-                    class_name="text-white font-bold tracking-tight",
+                    class_name=(
+                        "text-white font-black tracking-normal text-4xl sm:text-6xl"
+                    ),
                 ),
                 rx.cond(
                     movie.genres_str != "",
@@ -130,7 +132,10 @@ def _hero() -> rx.Component:
                     movie.has_overview,
                     rx.text(
                         movie.overview,
-                        class_name="text-slate-200 text-base max-w-3xl mt-2 leading-relaxed",
+                        class_name=(
+                            "text-slate-200 text-sm sm:text-base max-w-3xl mt-2 "
+                            "leading-relaxed"
+                        ),
                     ),
                 ),
                 rx.cond(
@@ -147,8 +152,9 @@ def _hero() -> rx.Component:
                 class_name="flex-col gap-3 max-w-3xl",
             ),
             class_name=(
-                "items-end gap-8 relative z-10 px-8 pt-32 pb-12 "
-                "max-w-[1400px] mx-auto"
+                "items-start sm:items-end gap-6 sm:gap-8 relative z-10 "
+                "px-5 sm:px-8 pt-32 pb-12 max-w-[1400px] mx-auto "
+                "flex-col sm:flex-row"
             ),
         ),
         class_name="relative w-full",
@@ -160,7 +166,7 @@ def _reviews_section() -> rx.Component:
         rx.heading(
             "Reviews",
             size="6",
-            class_name="text-white font-bold mb-6",
+            class_name="text-white font-black mb-6",
         ),
         rx.cond(
             AuthState.is_authenticated,
@@ -177,7 +183,7 @@ def _reviews_section() -> rx.Component:
                                 on_delete=MovieDetailState.delete_review,
                             ),
                         ),
-                        class_name="gap-3 w-full",
+                        class_name="gap-4 w-full",
                     ),
                     rx.box(
                         rx.text(
@@ -201,7 +207,7 @@ def _reviews_section() -> rx.Component:
                 class_name="border border-white/10 rounded-lg w-full",
             ),
         ),
-        class_name="px-8 max-w-3xl mx-auto pb-24 mt-12",
+        class_name="px-5 sm:px-8 max-w-3xl mx-auto pb-24 mt-10 sm:mt-12",
     )
 
 

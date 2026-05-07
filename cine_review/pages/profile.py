@@ -68,7 +68,7 @@ def _profile_action() -> rx.Component:
                 rx.icon("x", size=15),
                 rx.icon("pencil", size=15),
             ),
-            rx.cond(ProfileState.is_editing_bio, "Cancelar", "Editar bio"),
+            rx.cond(ProfileState.is_editing_bio, "Cancelar", "Editar perfil"),
             on_click=ProfileState.toggle_bio_edit,
             class_name=(
                 "h-9 bg-white/10 hover:bg-white/20 text-slate-100 text-sm "
@@ -122,8 +122,23 @@ def _bio_text() -> rx.Component:
     )
 
 
-def _bio_form() -> rx.Component:
+def _profile_form() -> rx.Component:
     return rx.box(
+        rx.flex(
+            rx.text("Username", class_name="text-slate-400 text-xs font-bold"),
+            rx.el.input(
+                value=ProfileState.username_input,
+                on_change=ProfileState.set_username_input,
+                placeholder="seu-username",
+                class_name=(
+                    "w-full bg-[#10131b] border border-white/10 rounded-md "
+                    "text-slate-100 text-sm px-3 py-2.5 focus:border-teal-400 "
+                    "outline-none transition"
+                ),
+            ),
+            class_name="flex-col gap-2 mb-3",
+        ),
+        rx.text("Bio", class_name="text-slate-400 text-xs font-bold mb-2"),
         rx.text_area(
             value=ProfileState.bio_input,
             on_change=ProfileState.set_bio_input,
@@ -137,7 +152,7 @@ def _bio_form() -> rx.Component:
         rx.flex(
             rx.button(
                 "Salvar",
-                on_click=ProfileState.save_bio,
+                on_click=ProfileState.save_profile,
                 is_loading=ProfileState.is_saving_bio,
                 class_name=(
                     "bg-teal-500 hover:bg-teal-400 text-slate-950 text-sm "
@@ -158,7 +173,7 @@ def _bio_form() -> rx.Component:
 def _bio_area() -> rx.Component:
     return rx.cond(
         ProfileState.is_own_profile,
-        rx.cond(ProfileState.is_editing_bio, _bio_form(), _bio_text()),
+        rx.cond(ProfileState.is_editing_bio, _profile_form(), _bio_text()),
         _bio_text(),
     )
 
@@ -401,7 +416,7 @@ def _connections_sidebar() -> rx.Component:
             ),
             class_name="flex-col gap-5",
         ),
-        class_name="w-full lg:w-72 lg:sticky lg:top-28 self-start",
+        class_name="w-full lg:w-80 xl:w-96 lg:sticky lg:top-28 self-start lg:ml-4",
     )
 
 
@@ -409,7 +424,7 @@ def _content() -> rx.Component:
     return rx.flex(
         rx.box(_reviews_grid(), class_name="flex-1 min-w-0"),
         _connections_sidebar(),
-        class_name="gap-10 flex-col lg:flex-row",
+        class_name="gap-10 xl:gap-14 flex-col lg:flex-row",
     )
 
 
@@ -447,7 +462,7 @@ def profile() -> rx.Component:
                         _header(),
                         _tabs(),
                         _content(),
-                        class_name="px-5 md:px-8 max-w-5xl mx-auto pt-10 pb-24",
+                        class_name="px-5 md:px-8 max-w-6xl mx-auto pt-10 pb-24",
                     ),
                 ),
             ),

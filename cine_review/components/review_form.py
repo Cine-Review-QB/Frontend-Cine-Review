@@ -59,7 +59,7 @@ def _star_slot(position: int) -> rx.Component:
                 "absolute right-0 top-0 w-1/2 h-full cursor-pointer z-10"
             ),
         ),
-        class_name="relative w-7 h-7 hover:scale-110 transition-transform",
+            class_name="relative w-7 h-7 hover:scale-110 transition-transform",
     )
 
 
@@ -81,7 +81,7 @@ def review_form() -> rx.Component:
         rx.heading(
             "Escrever review",
             size="4",
-            class_name="text-white font-semibold mb-4",
+            class_name="text-white font-black mb-4",
         ),
         # Linha de nota: label + estrelas + valor numérico
         rx.flex(
@@ -94,16 +94,16 @@ def review_form() -> rx.Component:
                 MovieDetailState.form_rating_str,
                 class_name="text-amber-400 font-bold text-base w-10",
             ),
-            class_name="items-center gap-4 mb-4",
+            class_name="items-center gap-3 sm:gap-4 mb-4 flex-wrap",
         ),
         rx.text_area(
             placeholder="Escreva sua review (opcional, máx 1000 caracteres)",
             value=MovieDetailState.form_text,
             on_change=MovieDetailState.set_form_text,
             class_name=(
-                "w-full bg-[#0a0a0f] border border-white/10 rounded-md p-3 "
+                "w-full bg-[#0a0a0f] border border-white/10 rounded-xl p-3 "
                 "text-slate-200 text-sm focus:border-teal-400 focus:outline-none "
-                "resize-none mb-3"
+                "focus:ring-4 focus:ring-teal-400/10 resize-none mb-3 transition"
             ),
             rows="4",
         ),
@@ -138,12 +138,14 @@ def review_form() -> rx.Component:
             on_click=MovieDetailState.submit_review,
             disabled=MovieDetailState.form_submitting,
             class_name=(
-                "bg-teal-500 hover:bg-teal-400 text-slate-900 font-semibold "
-                "px-6 py-2 rounded-lg disabled:opacity-50 cursor-pointer transition"
+                "bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold "
+                "px-6 py-2.5 rounded-xl disabled:opacity-50 cursor-pointer "
+                "transition shadow-lg shadow-teal-500/10"
             ),
         ),
         id="review-form",
         class_name=(
-            "bg-[#13161e] border border-white/10 rounded-lg p-5 w-full"
+            "bg-[#11151f]/95 border border-white/10 rounded-2xl p-4 sm:p-5 "
+            "w-full shadow-xl shadow-black/10"
         ),
     )

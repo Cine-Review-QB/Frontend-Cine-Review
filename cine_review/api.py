@@ -159,6 +159,7 @@ async def fetch_user_reviews(user_id: str, token: str) -> list[dict]:
     async with httpx.AsyncClient(timeout=10.0) as client:
         r = await client.get(
             f"{GATEWAY_URL}/reviews/user/{user_id}",
+            params={"limit": 200},
             headers=_bearer(token),
         )
         r.raise_for_status()
@@ -192,6 +193,18 @@ async def fetch_user_by_username(username: str, token: str) -> dict | None:
         )
         if r.status_code == 404:
             return None
+        r.raise_for_status()
+        return r.json()
+
+
+async def fetch_users(token: str, query: str = "") -> list[dict]:
+    """GET /auth/users?q=. Lista usuarios para busca social."""
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        r = await client.get(
+            f"{GATEWAY_URL}/auth/users",
+            params={"q": query} if query.strip() else None,
+            headers=_bearer(token),
+        )
         r.raise_for_status()
         return r.json()
 

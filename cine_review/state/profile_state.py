@@ -55,6 +55,7 @@ class ProfileState(rx.State):
     is_own_profile: bool = False
     is_loading: bool = False
     error: str = ""
+    username_input: str = ""
     bio_input: str = ""
     is_editing_bio: bool = False
     is_saving_bio: bool = False
@@ -108,6 +109,7 @@ class ProfileState(rx.State):
         self.is_editing_bio = False
         self.is_saving_bio = False
         self.bio_error = ""
+        self.username_input = ""
 
         auth = await self.get_state(AuthState)
         token = auth.access_token
@@ -156,6 +158,7 @@ class ProfileState(rx.State):
                 has_avatar=bool(avatar),
                 has_bio=bool(bio),
             )
+            self.username_input = self.user.username
             self.bio_input = bio
 
             self.is_own_profile = self.user.auth0_id == auth.user_id
@@ -163,6 +166,10 @@ class ProfileState(rx.State):
             try:
                 raw = await fetch_user_reviews(self.user.auth0_id, token)
                 self.reviews = [_to_review(r) for r in raw]
+                self.user = dataclasses.replace(
+                    self.user,
+                    review_count=len(self.reviews),
+                )
             except Exception as e:
                 logger.warning("Falha ao carregar reviews do perfil: %s", e)
                 self.reviews = []
@@ -240,6 +247,16 @@ class ProfileState(rx.State):
         if not self.is_own_profile:
             return
         self.is_editing_bio = not self.is_editing_bio
+        self.username_input = self.user.username
+        self.bio_input = self.user.bio
+        self.bio_error = ""
+
+    @rx.event
+    def set_username_input(self, value: str):
+        if not self.is_own_profile:
+            return
+        clean = value.strip().replace(" ", "-")
+        self.username_input = clean[:50]
         self.bio_error = ""
 
     @rx.event
@@ -250,9 +267,14 @@ class ProfileState(rx.State):
         self.bio_error = ""
 
     @rx.event
-    async def save_bio(self):
+    async def save_profile(self):
         auth = await self.get_state(AuthState)
         if not auth.access_token or not self.is_own_profile:
+            return
+
+        username = self.username_input.strip()
+        if len(username) < 3:
+            self.bio_error = "Username deve ter pelo menos 3 caracteres."
             return
 
         self.is_saving_bio = True
@@ -260,20 +282,25 @@ class ProfileState(rx.State):
 
         try:
             data = await update_profile(
-                username=self.user.username,
+                username=username,
                 bio=self.bio_input.strip(),
                 avatar_url=self.user.avatar_url,
                 token=auth.access_token,
             )
             bio = data.get("bio") or ""
+            new_username = data.get("username") or username
             self.user = dataclasses.replace(
                 self.user,
+                username=new_username,
                 bio=bio,
                 has_bio=bool(bio),
             )
+            auth.username = new_username
             self.is_editing_bio = False
+            if new_username != self.username_from_url:
+                return rx.redirect("/user/" + new_username)
         except Exception as e:
-            self.bio_error = f"Falha ao salvar bio: {e}"
+            self.bio_error = f"Falha ao salvar perfil: {e}"
         finally:
             self.is_saving_bio = False
 
